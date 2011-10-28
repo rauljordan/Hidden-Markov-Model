@@ -1,0 +1,2 @@
+This is a small test program for HMMs. It implements an
+simple HMM and the viterbi algorithm.
