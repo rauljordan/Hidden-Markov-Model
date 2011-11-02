@@ -1,0 +1,26 @@
+# Python
+*.py[cod]
+*.so
+
+# Latex:
+*.aux
+*.log
+*.bbl
+*.blg
+*.pdf
+*.dvi
+*.toc
+*.out
+
+# Vim tempfiles:
+.*.sw[a-z]
+*.un~
+Session.vim
+
+# aspell
+*.bak
+
+# Linux
+.*
+!.gitignore
+*~
