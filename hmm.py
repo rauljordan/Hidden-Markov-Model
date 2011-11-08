@@ -2,11 +2,10 @@ import random
 import pprint
 class Hmm:
     def __init__( self, init_vec, trans_p, emit_p):
-        self.trans_p          =trans_p
-        self.emit_p          = emit_p
+        self.trans_p    =trans_p
+        self.emit_p     = emit_p
         self.init_vec   = init_vec
         self.result_log = []
-        self.state_log  = []
 
     def generate( self, iterations ):
         state = self.roulette( self.init_vec )
@@ -49,4 +48,35 @@ class Hmm:
 
         #Backtracking, using an unreadable nested list-comprehension
         opt_path = [ max([(prob,state)  for (state,prob) in x.iteritems() ])[1] for x in v  ]
+
         return prob, opt_path
+
+    def train( self, observations ):
+        "pwd"
+
+    def forward_backward( self, observations,state, time ):
+        self.saved_vars = self.saved_vars if 'saved_vars' in self.__dict__ else {}
+        if not time in self.saved_vars:
+            self.saved_vars[time] = {}
+
+        if time >= len(observations):
+            return 1
+        if state in self.saved_vars[time]:
+            return self.saved_vars[time][state]
+        result = 0
+        for n in self.trans_p[state].keys():
+            result += self.trans_p[state][n] * self.emit_p[state][observations[time]] * self.forward_backward( observations, n, time+1)
+        self.saved_vars[time][state] = result
+        return result
+
+def create_hmm():
+    init_seq = {'rain' : 0.5 , 'no rain' : 0.5 }
+
+    a = { 'rain' : { 'rain': 0.7 , 'no rain' : 0.3  },
+               'no rain': { 'rain': 0.7 , 'no rain' : 0.3 } }
+
+    b = { 'rain'   : { 'umbrella': 0.9 , 'no umbrella': 0.1 },
+          'no rain': { 'umbrella': 0.2 , 'no umbrella': 0.8 }}
+
+    return Hmm( init_seq, a, b )
+
