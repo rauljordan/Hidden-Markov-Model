@@ -1,3 +1,6 @@
+def convert_dataset( dataset):
+    return map( convert, dataset)
+
 def convert( input_vector ):
     return map( squash, input_vector)
 
