@@ -1,6 +1,10 @@
 import random
 import math
 
+def gen_data_set():
+    fs = [ left_turn, right_turn, straight ]
+    return [ random.choice( fs )() for x in xrange( 7 ) ]
+
 def left_turn(label_data = False):
     data_vars = ['steering', 'speed']
     turn_label = 'left_turn' if label_data else None
@@ -37,8 +41,8 @@ def turn_data(t, data_vars, turn_label):
             output_tuple.append( turn_label )
         else:
             output_tuple.append( 'straight' )
-
-    return output_tuple
+    rounding = lambda x: round( x , 2 )
+    return map( rounding , output_tuple )
 
 def straight_data(data_vars):
     output_tuple = []
@@ -47,8 +51,9 @@ def straight_data(data_vars):
             output_tuple.append( random.normalvariate(0, 3 ) )
         elif var == 'speed':
             output_tuple.append( random.normalvariate( 50, 2) )
-    return output_tuple
+    rounding = lambda x: round( x , 2 )
+    return map( rounding, output_tuple )
 
 def get_distance():
-    return random.normalvariate( 15*10 , 5*10 ).__int__()
+    return random.normalvariate( 19*10 , 5*10 ).__int__()
 

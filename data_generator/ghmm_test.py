@@ -4,26 +4,37 @@ import itertools
 import gen
 import vq
 
-def gen_alphabet():
-    perm = [ [ [x,y] for y in xrange(0,3) ]   for x in xrange( -3, 4) ]
-    return list(itertools.chain(*perm) ) #return a flatten list
-
-def alphabet_to_hmm( vector ):
-    return gen_alphabet().index( vector )
-
-def hmm_to_alphabet( idx ):
-    return gen_alphabet()[idx]
-
 def state_to_string( state_num ):
-    return ['straight','left_turn', 'right_turn'][state_num]
+    return ['straight','left_turn', 'right_turn', 'weird output'][state_num]
 
-def gen_data_set():
-    fs = [ gen.left_turn, gen.right_turn, gen.straight ]
-    return [ random.choice( fs )() for x in xrange( 20 ) ]
+# takes a 
+def generate_emit_p():
+    straight    = [ vq.dataset_to_alphabet(gen.straight())   for x in xrange(50) ]
+    left_turns  = [ vq.dataset_to_alphabet(gen.left_turn())  for x in xrange(5) ]
+    right_turns = [ vq.dataset_to_alphabet(gen.right_turn()) for x in xrange(5) ]
+    data_sets = [ straight, left_turns, right_turns ]
+    gen_data_set = { 0: {}, 1: {}, 2: {} }
 
-#system_states = ['straight', 'left_turn', 'right_turn']
+    for idx, dataset in enumerate(data_sets):
+        for sample in dataset: 
+            for alpha in sample:
+                if alpha not in gen_data_set[idx]:
+                    gen_data_set[idx][alpha] = 1
+                else:
+                    gen_data_set[idx][alpha] += 1
+    alpha_size = len(vq.gen_alphabet() )
+    emit_p = [  [0.01 for x in xrange(alpha_size) ] for x in xrange(3) ]
+    for idx, stats in gen_data_set.iteritems():
+        for k,v in stats.iteritems():
+            emit_p[idx][k] = v
+    print emit_p
+    return normalize_emit_probabilites( emit_p )
+
+def normalize_emit_probabilites( emit_p ):
+    return [ [ round(y / sum(x), 3 ) for y in x  ]  for x in emit_p ]
+
 def create_hmm():
-    emit_states = range( len(gen_alphabet()) )
+    emit_states = range( len(vq.gen_alphabet()) )
     emit_domain = Alphabet( emit_states )
 
     trans_p = [ [0.9, 0.05 , 0.05],
@@ -34,6 +45,7 @@ def create_hmm():
     emit_p = [ [0.05, 0, 0, 0, 0, 0, 0, 0.05, 0, 0, 0, 0.9, 0, 0, 0,0,0,0,0,0,0],
                [0.45, 0, 0, 0, 0, 0, 0, 0.45, 0, 0, 0, 0.1, 0, 0, 0,0,0,0,0,0,0],
                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0.45, 0,0,0,0,0.45,0,0]]
+    emit_p = generate_emit_p()
 
     pi = [ 1, 0, 0 ]
     return HMMFromMatrices( emit_domain,
@@ -45,26 +57,26 @@ def create_hmm():
 
 ######################################################################
 
-hmm, emit_domain = create_hmm()
-print hmm
-hmm.normalize()
+if __name__ == '__main__' or True:
+    hmm, emit_domain = create_hmm()
+    #print hmm
+    hmm.normalize()
 
-##### Training the hmm #######
-for x in gen_data_set(): 
-    training_set = map(alphabet_to_hmm, vq.convert_dataset( x ) )
-    ghmm_training_set = EmissionSequence( emit_domain, training_set)
-    ghmm_training_set = hmm.sample(10,50)
-    hmm.baumWelch( ghmm_training_set, nrSteps=1, loglikelihoodCutoff = 0.1 )
+    ##### Training the hmm #######
+    for x in gen.gen_data_set():
+        #training_set = vq.dataset_to_alphabet( x )
+        #ghmm_training_set = EmissionSequence( emit_domain, training_set)
+        ghmm_training_set = hmm.sample(100,500)
+        hmm.baumWelch( ghmm_training_set )
+
+    ##### Classifying #####
+    left_turn = gen.right_turn()
+
+    for time_t in xrange(1, len(left_turn)):
+        lower = time_t - 10 if time_t - 10 > 0 else 0
+
+        obs_interval = vq.dataset_to_alphabet( left_turn[lower:time_t] )
+        obs_sequence = EmissionSequence( emit_domain, obs_interval ) 
+        state = hmm.viterbi( obs_sequence )
+        print state_to_string( state[0][-1]) , left_turn[time_t]
     print hmm
-
-##### Classifying #####
-left_turn = gen.left_turn()
-for time_t in xrange(1, len(left_turn)):
-    lower = time_t - 100 if time_t - 100 > 0 else 0
-
-    obs_interval =  map( alphabet_to_hmm, vq.convert_dataset(left_turn[lower:time_t] ) )
-    obs_sequence = EmissionSequence( emit_domain, obs_interval ) 
-   # print obs_interval 
-    state = hmm.viterbi( obs_sequence )
-    print state_to_string( state[0][-1]) , left_turn[time_t]
-        #print state_to_string( state ), left_turn[time_t]
