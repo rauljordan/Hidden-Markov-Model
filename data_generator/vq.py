@@ -1,5 +1,9 @@
 import itertools
 
+min_value_norm = -6
+max_value_norm = 5
+precision = 5.0
+
 #converts a whole dataset from continues input to ghmm alphabet
 def dataset_to_alphabet( dataset ):
     dataset_norm = convert_dataset_norm( dataset )
@@ -15,7 +19,7 @@ def alphabet_to_data( hmm_alphabet_char ):
 
 # generates alphabet to vector mapping
 def gen_alphabet():
-    perm = [ [ [x,y] for y in xrange(0,3) ]   for x in xrange( -3, 4) ]
+    perm = [ [ [x,y] for y in xrange(min_value_norm,max_value_norm) ]   for x in xrange( min_value_norm, max_value_norm) ]
     return list(itertools.chain(*perm) ) #return a flatten list
 
 # [[0.432, 30.2] , [-0.1, 32,1] ] -> [[ 0, 1] , [ 0, 1]]
@@ -26,10 +30,10 @@ def convert( input_vector ):
     return map( squash, input_vector)
 
 def squash(x):
-    var = int( x/20.0 )
-    if var >= 3:
-        return 3
-    elif var <= -3:
-        return -3
+    var = int( x/precision)
+    if var >= max_value_norm :
+        return max_value_norm -1 
+    elif var <= min_value_norm:
+        return min_value_norm
     else:
         return var
