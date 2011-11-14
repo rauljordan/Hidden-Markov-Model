@@ -52,13 +52,14 @@ def create_hmm():
                             ),emit_domain
 
 def train_hmm(hmm, emit_domain):
-    for x in xrange(100):
+    for x in xrange(75):
         ghmm_training_set = hmm.sample(100,500)
         hmm.baumWelch( ghmm_training_set )
 
-    for x in gen.gen_data_set(0):
+    for x, label in gen.gen_data_set(15):
         training_set = vq.dataset_to_alphabet( x )
         ghmm_training_set = EmissionSequence( emit_domain, training_set)
+        ghmm_training_set.setSeqLabel(label)
         hmm.baumWelch( ghmm_training_set)
 
     return hmm
@@ -67,7 +68,6 @@ def classify(hmm):
     left_turn = gen.right_turn()
 
     for time_t in xrange(1, len(left_turn)):
-
         obs_interval = vq.dataset_to_alphabet( left_turn[:time_t] )
         obs_sequence = EmissionSequence( emit_domain, obs_interval ) 
         state = hmm.viterbi( obs_sequence )

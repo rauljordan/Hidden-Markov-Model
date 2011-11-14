@@ -2,14 +2,17 @@ import random
 import math
 
 def gen_data_set(size= 30):
+    labels = { straight: 0, left_turn: 1, right_turn: 2 }
     fs = [ left_turn, right_turn, straight ]
-    return [ random.choice( fs )() for x in xrange( size) ]
+    unlabel_sequence = [ random.choice( fs ) for x in xrange( size) ]
+    return [ [ f(), labels[f] ] for f in unlabel_sequence ]
 
 def left_turn(label_data = False):
     data_vars = ['steering', 'speed']
     turn_label = 'left_turn' if label_data else None
     turn_seq = [ turn_data(t , data_vars, turn_label) for t in xrange(get_distance() ) ]
 
+    #We are generating a right turn, adding a - to the value creates a left turn
     flip = lambda s: [-s[0]] + s[1:]
     return map( flip , turn_seq )
 
