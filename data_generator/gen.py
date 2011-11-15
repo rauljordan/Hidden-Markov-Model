@@ -29,9 +29,11 @@ def straight():
 def turn_data(t, data_vars, turn_label):
     max_steering = 70
     max_speed    = 50
-    steering = lambda x:          math.e**(- ((x-70)**2) / (2*20**2 ))
-    speed    = lambda x: 1- 0.9 * math.e**(- ((x-70)**2) / (2*20**2 ))
-    norm     = random.normalvariate
+    exp_value    = 70
+    variance     = 20
+    steering = lambda x:          math.e**(- ((x-exp_value)**2) / (2*variance**2 ))
+    speed    = lambda x: 1- 0.9 * math.e**(- ((x-exp_value)**2) / (2*variance**2 ))
+    norm     = random.normalvariate #Is used to add some variation to the data
 
     output_tuple = []
     for var in data_vars:
@@ -41,7 +43,7 @@ def turn_data(t, data_vars, turn_label):
             output_tuple.append( max_speed * speed(t) + norm(0,1) )
 
     if turn_label:
-        if abs( max_steering * steering(t) + norm(0,1)) > 3:
+        if abs( max_steering * steering(t) ) > 3:
             output_tuple.append( turn_label )
         else:
             output_tuple.append( 'straight' )
@@ -60,5 +62,5 @@ def straight_data(data_vars):
     return map( rounding, output_tuple )
 
 def get_distance():
-    return 19*10
+    return 15*10
 

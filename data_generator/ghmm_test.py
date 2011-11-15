@@ -4,13 +4,14 @@ import itertools
 import gen
 import vq
 
+#Converts ghmms inner state representation to a human readable output
 def state_to_string( state_num ):
-    return ['straight','left_turn', 'right_turn', 'weird output'][state_num]
+    return ['straight','\033[1;32mleft_turn\033[0m', '\033[1;32mright_turn\033[0m', '\033[1;31mweird output\033[0m'][state_num]
 
 def generate_emit_p():
-    straight    = [ vq.dataset_to_alphabet(gen.straight())   for x in xrange(5) ]
-    left_turns  = [ vq.dataset_to_alphabet(gen.left_turn())  for x in xrange(10) ]
-    right_turns = [ vq.dataset_to_alphabet(gen.right_turn()) for x in xrange(10) ]
+    straight    = [ vq.dataset_to_alphabet(gen.straight())   for x in xrange(50) ]
+    left_turns  = [ vq.dataset_to_alphabet(gen.left_turn())  for x in xrange(100) ]
+    right_turns = [ vq.dataset_to_alphabet(gen.right_turn()) for x in xrange(100) ]
     data_sets = [ straight, left_turns, right_turns ]
     gen_data_set = { 0: {}, 1: {}, 2: {} }
 
@@ -52,30 +53,36 @@ def create_hmm():
                             ),emit_domain
 
 def train_hmm(hmm, emit_domain):
-    for x in xrange(75):
-        ghmm_training_set = hmm.sample(100,500)
-        hmm.baumWelch( ghmm_training_set )
 
-    for x, label in gen.gen_data_set(15):
+    for x, label in gen.gen_data_set(size_generated_training_set):
         training_set = vq.dataset_to_alphabet( x )
         ghmm_training_set = EmissionSequence( emit_domain, training_set)
         ghmm_training_set.setSeqLabel(label)
-        hmm.baumWelch( ghmm_training_set)
+        hmm.baumWelch( ghmm_training_set,loglikelihoodCutoff=0.000001, nrSteps = 10)
 
+    for x in xrange(size_sampled_training_set):
+        ghmm_training_set = hmm.sample(100,500)
+        hmm.baumWelch( ghmm_training_set )
     return hmm
 
 def classify(hmm):
-    left_turn = gen.right_turn()
+    unclassified_data = gen.right_turn() + gen.left_turn()
 
-    for time_t in xrange(1, len(left_turn)):
-        obs_interval = vq.dataset_to_alphabet( left_turn[:time_t] )
+    for time_t in xrange(1, len(unclassified_data)):
+        obs_interval = vq.dataset_to_alphabet(unclassified_data[:time_t][-observation_size:] )
         obs_sequence = EmissionSequence( emit_domain, obs_interval ) 
         state = hmm.viterbi( obs_sequence )
 #        print state
-        print state_to_string( state[0][-1]) , left_turn[time_t]
+        print state_to_string( state[0][-1]) , unclassified_data[time_t] , state[1]
 ######################################################################
 
 if __name__ == '__main__' or True:
+
+    # 10 is one sec, 100 is 10sec
+    observation_size = 40
+    size_sampled_training_set = 50
+    size_generated_training_set = 0
+
     print "Calculating emission and transition probabilities"
     hmm, emit_domain = create_hmm()
     print "HMM created"
@@ -89,4 +96,5 @@ if __name__ == '__main__' or True:
     ##### Classifying #####
     print "Classifying training data"
     classify(hmm)
+    print hmm
 

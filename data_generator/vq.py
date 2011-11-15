@@ -1,7 +1,7 @@
 import itertools
 
-min_value_norm = -6
-max_value_norm = 5
+min_value_norm = -8
+max_value_norm = 7
 precision = 5.0
 
 #converts a whole dataset from continues input to ghmm alphabet
@@ -26,6 +26,7 @@ def gen_alphabet():
 def convert_dataset_norm( dataset):
     return map( convert, dataset)
 
+# Applies the squash function on all the elements in a vector
 def convert( input_vector ):
     return map( squash, input_vector)
 
